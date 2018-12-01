@@ -17,6 +17,18 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "type": "cargo",
+            "label": "cargo bench",
+            "command": "cargo",
+            "args": [
+                "+nightly",
+                "bench"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ]
         }
     ]
 }

@@ -45,6 +45,7 @@ pub fn solve_b() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test::Bencher;
 
     #[test]
     fn all_positives_input() {
@@ -79,5 +80,15 @@ mod tests {
         let v = vec![3, 3, 4, -2, -4];
 
         assert!(stops_twice(v) == 10);
+    }
+
+    #[bench]
+    fn bench_a(b: &mut Bencher) {
+        b.iter(|| solve_a());
+    }
+
+    #[bench]
+    fn bench_b(b: &mut Bencher) {
+        b.iter(|| solve_b());
     }
 }
