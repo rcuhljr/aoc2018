@@ -3,15 +3,10 @@ use std::io::prelude::*;
 use std::str::Lines;
 
 pub fn load_adjustments(filename: String) -> Vec<i32> {
-    let mut f = File::open(filename).expect("file not found");
-
-    let mut contents = String::new();
-    f.read_to_string(&mut contents)
-        .expect("something went wrong reading the file");
-
-    let v: Lines = contents.lines();
-
-    return v.map(|val| val.parse().unwrap()).collect();
+    return load_strings(filename)
+        .iter()
+        .map(|val| val.parse().unwrap())
+        .collect();
 }
 
 pub fn load_strings(filename: String) -> Vec<String> {
