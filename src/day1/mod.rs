@@ -8,15 +8,14 @@ fn total_adjustments(adjusts: Vec<i32>) -> i32 {
 fn stops_twice(adjusts: Vec<i32>) -> i32 {
     let mut stops = HashMap::new();
     let mut current = 0;
-    let mut index = 0;
+    let mut looped_adjusts = adjusts.iter().cycle();
 
     loop {
         if stops.contains_key(&current) {
             return current;
         }
         stops.insert(current.clone(), true);
-        current += adjusts[index % adjusts.len()];
-        index += 1;
+        current += looped_adjusts.next().unwrap();
     }
 }
 
