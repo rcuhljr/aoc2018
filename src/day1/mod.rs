@@ -1,8 +1,5 @@
 use super::utility;
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::prelude::*;
-use std::str::Lines;
 
 fn total_adjustments(adjusts: Vec<i32>) -> i32 {
     return adjusts.iter().fold(0, |acc, x| acc + x);
