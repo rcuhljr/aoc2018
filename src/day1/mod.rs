@@ -37,28 +37,28 @@ mod tests {
     fn all_positives_input() {
         let v = vec![1, 1, 1];
 
-        assert!(total_adjustments(v) == 3);
+        assert_eq!(total_adjustments(v), 3);
     }
 
     #[test]
     fn mixed_inputs() {
         let v = vec![1, 1, -2];
 
-        assert!(total_adjustments(v) == 0);
+        assert_eq!(total_adjustments(v), 0);
     }
 
     #[test]
     fn reaches_zero_simple() {
         let v = vec![1, -1];
 
-        assert!(stops_twice(v) == 0);
+        assert_eq!(stops_twice(v), 0);
     }
 
     #[test]
     fn reaches_ten() {
         let v = vec![3, 3, 4, -2, -4];
 
-        assert!(stops_twice(v) == 10);
+        assert_eq!(stops_twice(v), 10);
     }
 
     #[bench]
