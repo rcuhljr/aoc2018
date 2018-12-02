@@ -37,7 +37,7 @@ fn check_match(left: &String, right: &String) -> String {
     let mut missmatch = false;
     let mut pairs = left.chars().zip(right.chars());
 
-    let result = pairs.try_for_each(|(chl, chr)| {
+    return match pairs.try_for_each(|(chl, chr)| {
         if chl == chr {
             common.push(chl)
         } else {
@@ -48,13 +48,10 @@ fn check_match(left: &String, right: &String) -> String {
             }
         }
         return Ok(());
-    });
-
-    if result.is_ok() {
-        return common;
-    } else {
-        return "".to_string();
-    }
+    }) {
+        Ok(()) => common,
+        Err(()) => "".to_string(),
+    };
 }
 
 pub fn solve_a() -> String {
