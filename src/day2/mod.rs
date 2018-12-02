@@ -23,7 +23,7 @@ fn find_checksum(samples: Vec<String>) -> i32 {
 fn find_near_match(samples: Vec<String>) -> String {
     for index in 0..samples.len() - 1 {
         for inner_index in index + 1..samples.len() {
-            let mut result = check_match(samples[index].clone(), samples[inner_index].clone());
+            let result = check_match(&samples[index], &samples[inner_index]);
             if result != "".to_string() {
                 return result;
             }
@@ -32,23 +32,29 @@ fn find_near_match(samples: Vec<String>) -> String {
     return "".to_string();
 }
 
-fn check_match(left: String, right: String) -> String {
+fn check_match(left: &String, right: &String) -> String {
     let mut common = String::new();
     let mut missmatch = false;
+    let mut pairs = left.chars().zip(right.chars());
 
-    for index in 0..left.len() {
-        if left.get(index..index + 1).unwrap() == right.get(index..index + 1).unwrap() {
-            common.push_str(left.get(index..index + 1).unwrap().clone());
+    let result = pairs.try_for_each(|(chl, chr)| {
+        if chl == chr {
+            common.push(chl)
         } else {
             if missmatch {
-                return "".to_string();
+                return Err(());
             } else {
                 missmatch = true;
             }
         }
-    }
+        return Ok(());
+    });
 
-    return common;
+    if result.is_ok() {
+        return common;
+    } else {
+        return "".to_string();
+    }
 }
 
 pub fn solve_a() -> String {
@@ -81,7 +87,7 @@ mod tests {
 
     #[test]
     fn check_match_sample() {
-        let actual = check_match(String::from("fguij"), String::from("fghij"));
+        let actual = check_match(&String::from("fguij"), &String::from("fghij"));
         assert_eq!(actual, String::from("fgij"));
     }
 
