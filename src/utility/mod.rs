@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::str::Lines;
 
-pub fn load_adjustments(filename: String) -> Vec<i32> {
+pub fn load_numbers(filename: String) -> Vec<i32> {
     return load_strings(filename)
         .iter()
         .map(|val| val.parse().unwrap())
@@ -29,14 +29,17 @@ mod tests {
     fn read_file() {
         let v = vec![1, 2, -1];
 
-        assert!(load_adjustments("./src/utility/test.txt".to_string()) == v);
+        assert_eq!(load_numbers("./src/utility/test.txt".to_string()), v);
     }
 
     #[test]
     fn read_string_file() {
         let v = vec![String::from("ABC"), String::from("DEF")];
 
-        assert!(load_strings("./src/utility/test_strings.txt".to_string()) == v);
+        assert_eq!(
+            load_strings("./src/utility/test_strings.txt".to_string()),
+            v
+        );
     }
 
 }
