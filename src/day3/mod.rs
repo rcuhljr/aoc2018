@@ -54,7 +54,6 @@ fn count_overlaps(filename: String, dims: i32) -> i32 {
         .map(|raw| parse_claim(raw.to_string()))
         .collect();
     let size = dims * dims;
-
     let mut field = vec![0; size as usize];
 
     claims
@@ -67,8 +66,8 @@ fn count_overlaps(filename: String, dims: i32) -> i32 {
 fn add_claim(claim: &Claim, field: &mut [i32], dims: i32) {
     for col in 0..claim.width {
         for row in 0..claim.height {
-            let abs_pos: usize = (((row + claim.y) * dims) + col + claim.x) as usize;
-            field[abs_pos] += 1;
+            let abs_pos = (row + claim.y) * dims + col + claim.x;
+            field[abs_pos as usize] += 1;
         }
     }
 }
