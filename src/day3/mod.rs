@@ -97,13 +97,12 @@ fn find_no_overlaps(filename: String) -> String {
 
 fn claims_overlap(left: &Claim, right: &Claim) -> bool {
     if left.lrx < right.x || right.lrx < left.x {
-        return false;
+        false
+    } else if left.lry < right.y || right.lry < left.y {
+        false
+    } else {
+        true
     }
-
-    if left.lry < right.y || right.lry < left.y {
-        return false;
-    }
-    true
 }
 
 #[cfg(test)]
