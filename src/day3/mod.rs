@@ -1,11 +1,11 @@
 use super::utility;
 
 pub fn solve_a() -> String {
-    return count_overlaps("input3.txt".to_string(), 1000).to_string();
+    count_overlaps("input3.txt".to_string(), 1000).to_string()
 }
 
 pub fn solve_b() -> String {
-    return find_no_overlaps("input3.txt".to_string());
+    find_no_overlaps("input3.txt".to_string())
 }
 
 #[derive(Debug)]
@@ -38,14 +38,14 @@ fn parse_claim(raw_claim: String) -> Claim {
     let lrx = x + width - 1;
     let lry = y + height - 1;
 
-    return Claim {
+    Claim {
         x,
         y,
         width,
         height,
         lrx,
         lry,
-    };
+    }
 }
 
 fn count_overlaps(filename: String, dims: i32) -> i32 {
@@ -60,7 +60,7 @@ fn count_overlaps(filename: String, dims: i32) -> i32 {
         .iter()
         .for_each(|claim| add_claim(claim, &mut field, dims));
 
-    return field.iter().fold(0, |a, b| if b > &1 { a + 1 } else { a });
+    field.iter().fold(0, |a, b| if b > &1 { a + 1 } else { a })
 }
 
 fn add_claim(claim: &Claim, field: &mut [i32], dims: i32) {
@@ -92,7 +92,7 @@ fn find_no_overlaps(filename: String) -> String {
             }
         }
     }
-    return (valids.iter().position(|&x| x).unwrap() + 1).to_string();
+    (valids.iter().position(|&x| x).unwrap() + 1).to_string()
 }
 
 fn claims_overlap(left: &Claim, right: &Claim) -> bool {
@@ -103,7 +103,7 @@ fn claims_overlap(left: &Claim, right: &Claim) -> bool {
     if left.lry < right.y || right.lry < left.y {
         return false;
     }
-    return true;
+    true
 }
 
 #[cfg(test)]
