@@ -3,37 +3,20 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 
 pub fn solve_a() -> String {
-    determine_optimal_time("input4.txt".to_string()).to_string()
-    //count_overlaps("input3.txt".to_string(), 1000).to_string()
+    determine_optimal_time_by_sum("input4.txt".to_string()).to_string()
 }
 
 pub fn solve_b() -> String {
-    determine_optimal_time2("input4.txt".to_string()).to_string()
+    determine_optimal_time_by_freq("input4.txt".to_string()).to_string()
 }
 
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, PartialEq, PartialOrd)]
 struct Log {
     month: i32,
     day: i32,
     hour: i32,
     min: i32,
     data: String,
-}
-
-impl PartialEq for Log {
-    fn eq(&self, other: &Log) -> bool {
-        return self.month == other.month
-            && self.day == other.day
-            && self.hour == other.hour
-            && self.min == other.min
-            && self.data == other.data;
-    }
-}
-
-impl PartialOrd for Log {
-    fn partial_cmp(&self, other: &Log) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
 }
 
 impl Ord for Log {
@@ -50,6 +33,14 @@ impl Ord for Log {
     }
 }
 
+#[derive(Debug)]
+struct WatchSummary {
+    id: i32,
+    max: i32,
+    max_loc: i32,
+    total: i32,
+}
+
 fn parse_log(entry: &str) -> Log {
     let mut parts = entry.split(' ');
     let date: Vec<&str> = parts.next().unwrap().trim_matches('[').split('-').collect();
@@ -62,16 +53,16 @@ fn parse_log(entry: &str) -> Log {
     let hour: i32 = time[0].parse().unwrap();
     let min: i32 = time[1].parse().unwrap();
 
-    return Log {
+    Log {
         month,
         day,
         hour,
         min,
         data,
-    };
+    }
 }
 
-fn determine_optimal_time(filename: String) -> i32 {
+fn determine_optimal_time_by_sum(filename: String) -> i32 {
     let mut claims: Vec<Log> = utility::load_strings(filename)
         .iter()
         .map(|raw| parse_log(raw))
@@ -79,6 +70,36 @@ fn determine_optimal_time(filename: String) -> i32 {
 
     claims.sort_unstable();
 
+    let watches = build_watches_map(claims);
+
+    let summaries = build_watch_summary(watches);
+
+    let max_freq = summaries
+        .iter()
+        .max_by_key(|summary| summary.total)
+        .unwrap();
+
+    max_freq.id * max_freq.max_loc
+}
+
+fn determine_optimal_time_by_freq(filename: String) -> i32 {
+    let mut claims: Vec<Log> = utility::load_strings(filename)
+        .iter()
+        .map(|raw| parse_log(raw))
+        .collect();
+
+    claims.sort_unstable();
+
+    let watches = build_watches_map(claims);
+
+    let summaries = build_watch_summary(watches);
+
+    let max_freq = summaries.iter().max_by_key(|summary| summary.max).unwrap();
+
+    max_freq.id * max_freq.max_loc
+}
+
+fn build_watches_map(claims: Vec<Log>) -> HashMap<String, Vec<Vec<i32>>> {
     let mut watches: HashMap<String, Vec<Vec<i32>>> = HashMap::new();
     let mut new_guard = false;
     let mut guard: String = "".to_string();
@@ -103,61 +124,11 @@ fn determine_optimal_time(filename: String) -> i32 {
             watch.push(slots);
         }
     }
-
-    let mut sleepiest = ("".to_string(), 0, 0);
-
-    for (guard, watches) in watches.iter() {
-        let mut totals = vec![0; 60];
-        for day in watches.iter() {
-            for index in 0..60 {
-                totals[index] += day[index];
-            }
-        }
-        let sum = totals.iter().fold(0, |acc, x| acc + x);
-        if sum > sleepiest.1 {
-            let max = totals.iter().max().unwrap();
-            let loc_max: i32 = totals.iter().position(|&x| x == *max).unwrap() as i32;
-            sleepiest = (guard.to_string(), sum, loc_max);
-        }
-    }
-    let guard_val: i32 = (sleepiest.0).to_string().trim_matches('#').parse().unwrap();
-    return guard_val * sleepiest.2;
+    watches
 }
 
-fn determine_optimal_time2(filename: String) -> i32 {
-    let mut claims: Vec<Log> = utility::load_strings(filename)
-        .iter()
-        .map(|raw| parse_log(raw))
-        .collect();
-
-    claims.sort_unstable();
-
-    let mut watches: HashMap<String, Vec<Vec<i32>>> = HashMap::new();
-    let mut new_guard = false;
-    let mut guard: String = "".to_string();
-    let mut start_min = 0;
-
-    for claim in claims {
-        if claim.data.starts_with("#") {
-            new_guard = true;
-            guard = claim.data;
-        } else if claim.data == "asleep" {
-            start_min = claim.min;
-        } else {
-            let watch = watches.entry(guard.clone()).or_insert(Vec::new());
-            if new_guard {
-                new_guard = false;
-                watch.push(vec![0; 60]);
-            }
-            let mut slots: Vec<i32> = watch.pop().unwrap();
-            for index in start_min..claim.min {
-                slots[index as usize] = 1;
-            }
-            watch.push(slots);
-        }
-    }
-
-    let mut sleepiest = ("".to_string(), 0, 0, 0);
+fn build_watch_summary(watches: HashMap<String, Vec<Vec<i32>>>) -> Vec<WatchSummary> {
+    let mut summaries: Vec<WatchSummary> = Vec::new();
 
     for (guard, watches) in watches.iter() {
         let mut totals = vec![0; 60];
@@ -166,15 +137,18 @@ fn determine_optimal_time2(filename: String) -> i32 {
                 totals[index] += day[index];
             }
         }
-        let sum = totals.iter().fold(0, |acc, x| acc + x);
-        let max = totals.iter().max().unwrap();
-        let loc_max: i32 = totals.iter().position(|&x| x == *max).unwrap() as i32;
-        if *max > sleepiest.3 {
-            sleepiest = (guard.to_string(), sum, loc_max, *max);
-        }
+        let total = totals.iter().fold(0, |acc, x| acc + x);
+        let max: i32 = *totals.iter().max().unwrap();
+        let max_loc: i32 = totals.iter().position(|&x| x == max).unwrap() as i32;
+        let id: i32 = guard.trim_matches('#').parse().unwrap();
+        summaries.push(WatchSummary {
+            id,
+            max,
+            max_loc,
+            total,
+        });
     }
-    let guard_val: i32 = (sleepiest.0).to_string().trim_matches('#').parse().unwrap();
-    return guard_val * sleepiest.2;
+    summaries
 }
 
 #[cfg(test)]
@@ -225,14 +199,14 @@ mod tests {
 
     #[test]
     fn should_solve_sample() {
-        let actual = determine_optimal_time("./src/day4/test_logs.txt".to_string());
+        let actual = determine_optimal_time_by_sum("./src/day4/test_logs.txt".to_string());
 
         assert_eq!(actual, 240);
     }
 
     #[test]
     fn should_solve_sample2() {
-        let actual = determine_optimal_time2("./src/day4/test_logs.txt".to_string());
+        let actual = determine_optimal_time_by_freq("./src/day4/test_logs.txt".to_string());
 
         assert_eq!(actual, 4455);
     }
