@@ -55,11 +55,11 @@ fn check_match(left: &String, right: &String) -> String {
 }
 
 pub fn solve_a() -> String {
-    return find_checksum(utility::load_strings("input2a.txt".to_string())).to_string();
+    return find_checksum(utility::load_strings("input2.txt".to_string())).to_string();
 }
 
 pub fn solve_b() -> String {
-    return find_near_match(utility::load_strings("input2a.txt".to_string())).to_string();
+    return find_near_match(utility::load_strings("input2.txt".to_string())).to_string();
 }
 
 #[cfg(test)]

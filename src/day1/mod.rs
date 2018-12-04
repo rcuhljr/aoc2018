@@ -20,11 +20,11 @@ fn stops_twice(adjusts: Vec<i32>) -> i32 {
 }
 
 pub fn solve_a() -> String {
-    return total_adjustments(utility::load_numbers("input1a.txt".to_string())).to_string();
+    return total_adjustments(utility::load_numbers("input1.txt".to_string())).to_string();
 }
 
 pub fn solve_b() -> String {
-    return stops_twice(utility::load_numbers("input1a.txt".to_string())).to_string();
+    return stops_twice(utility::load_numbers("input1.txt".to_string())).to_string();
 }
 
 #[cfg(test)]
