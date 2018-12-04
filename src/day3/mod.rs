@@ -50,17 +50,8 @@ fn parse_claim(raw_claim: String) -> Claim {
     let dims: Vec<&str> = parts.next().unwrap().split('x').collect();
     let width: i32 = dims[0].parse().unwrap();
     let height: i32 = dims[1].parse().unwrap();
-    let lrx = x + width - 1;
-    let lry = y + height - 1;
 
-    Claim {
-        x,
-        y,
-        width,
-        height,
-        lrx,
-        lry,
-    }
+    Claim::new(x, y, width, height)
 }
 
 fn count_overlaps(filename: String, dims: i32) -> i32 {
@@ -128,28 +119,14 @@ mod tests {
     #[test]
     fn should_parse_claim_string() {
         let v = "#1 @ 1,3: 4x4".to_string();
-        let expected = Claim {
-            x: 1,
-            y: 3,
-            width: 4,
-            height: 4,
-            lrx: 4,
-            lry: 6,
-        };
+        let expected = Claim::new(1, 3, 4, 4);
 
         assert_eq!(parse_claim(v), expected);
     }
 
     #[test]
     fn should_increment_by_claim() {
-        let sample = Claim {
-            x: 1,
-            y: 1,
-            width: 1,
-            height: 1,
-            lrx: 0,
-            lry: 0,
-        };
+        let sample = Claim::new(1, 1, 1, 1);
         let mut actual = vec![0, 0, 0, 0, 0, 0, 0, 0, 0];
         let expected = [0, 0, 0, 0, 1, 0, 0, 0, 0];
 
