@@ -18,6 +18,21 @@ struct Claim {
     lry: i32,
 }
 
+impl Claim {
+    pub fn new(x: i32, y: i32, width: i32, height: i32) -> Claim {
+        let lrx = x + width - 1;
+        let lry = y + height - 1;
+        Claim {
+            x,
+            y,
+            width,
+            height,
+            lrx,
+            lry,
+        }
+    }
+}
+
 impl PartialEq for Claim {
     fn eq(&self, other: &Claim) -> bool {
         return self.x == other.x
