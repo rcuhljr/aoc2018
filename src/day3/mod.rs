@@ -114,7 +114,6 @@ fn claims_overlap(left: &Claim, right: &Claim) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use test::Bencher;
 
     #[test]
     fn should_parse_claim_string() {
@@ -143,15 +142,5 @@ mod tests {
     #[test]
     fn should_solve_clean_sample() {
         assert_eq!(find_no_overlaps("./src/day3/test.txt".to_string()), "3");
-    }
-
-    #[bench]
-    fn bench_a(b: &mut Bencher) {
-        b.iter(|| solve_a());
-    }
-
-    #[bench]
-    fn bench_b(b: &mut Bencher) {
-        b.iter(|| solve_b());
     }
 }

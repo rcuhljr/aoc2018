@@ -65,7 +65,6 @@ pub fn solve_b() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use test::Bencher;
 
     #[test]
     fn find_checksum_sample() {
@@ -100,15 +99,5 @@ mod tests {
             String::from("wvxyz"),
         ];
         assert_eq!(find_near_match(v), String::from("fgij"));
-    }
-
-    #[bench]
-    fn bench_a(b: &mut Bencher) {
-        b.iter(|| solve_a());
-    }
-
-    #[bench]
-    fn bench_b(b: &mut Bencher) {
-        b.iter(|| solve_b());
     }
 }

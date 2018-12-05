@@ -154,7 +154,6 @@ fn build_watch_summary(watches: HashMap<String, Vec<Vec<i32>>>) -> Vec<WatchSumm
 #[cfg(test)]
 mod tests {
     use super::*;
-    use test::Bencher;
 
     #[test]
     fn should_parse_entry() {
@@ -209,15 +208,5 @@ mod tests {
         let actual = determine_optimal_time_by_freq("./src/day4/test.txt".to_string());
 
         assert_eq!(actual, 4455);
-    }
-
-    #[bench]
-    fn bench_a(b: &mut Bencher) {
-        b.iter(|| solve_a());
-    }
-
-    #[bench]
-    fn bench_b(b: &mut Bencher) {
-        b.iter(|| solve_b());
     }
 }

@@ -1,5 +1,4 @@
 use super::utility;
-use std::cmp;
 
 pub fn solve_a() -> String {
     collapse_polymers("input5.txt".to_string())
@@ -38,8 +37,7 @@ pub fn collapse_polymers_string(polystring: &String) -> String {
                 }
             }
             remaining
-        })
-        .iter()
+        }).iter()
         .map(|c| *c)
         .collect()
 }
@@ -73,7 +71,6 @@ fn find_shortest(filename: String) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use test::Bencher;
 
     #[test]
     fn should_solve_sample5a() {
@@ -86,15 +83,5 @@ mod tests {
     fn should_solve_sample5b() {
         let actual = find_shortest("./src/day5/test.txt".to_string());
         assert_eq!(actual, 4);
-    }
-    // Uncomment when speed fix is in place.
-    #[bench]
-    fn bench_a(b: &mut Bencher) {
-        b.iter(|| solve_a());
-    }
-
-    #[bench]
-    fn bench_b(b: &mut Bencher) {
-        b.iter(|| solve_b());
     }
 }

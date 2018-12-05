@@ -1,6 +1,5 @@
-#![feature(test)]
 extern crate regex;
-extern crate test;
+use std::time::Instant;
 mod day1;
 mod day2;
 mod day3;
@@ -8,15 +7,22 @@ mod day4;
 mod day5;
 mod utility;
 
+fn record_times(format: &str, f: &Fn() -> String) {
+    let start = Instant::now();
+    let result = f();
+    let duration = start.elapsed();
+    println!("{}: {} \n\t\tsolved in: {:?}", format, result, duration);
+}
+
 fn main() {
-    println!("Day1a: {}", day1::solve_a());
-    println!("Day1b: {}", day1::solve_b());
-    println!("Day2a: {}", day2::solve_a());
-    println!("Day2b: {}", day2::solve_b());
-    println!("Day3a: {}", day3::solve_a());
-    println!("Day3b: {}", day3::solve_b());
-    println!("Day4a: {}", day4::solve_a());
-    println!("Day4b: {}", day4::solve_b());
-    println!("Day5a: {}", day5::solve_a());
-    println!("Day5b: {}", day5::solve_b());
+    record_times("Day1a", &day1::solve_a);
+    record_times("Day1b", &day1::solve_b);
+    record_times("Day2a", &day2::solve_a);
+    record_times("Day2b", &day2::solve_b);
+    record_times("Day3a", &day3::solve_a);
+    record_times("Day3b", &day3::solve_b);
+    record_times("Day4a", &day4::solve_a);
+    record_times("Day4b", &day4::solve_b);
+    record_times("Day5a", &day5::solve_a);
+    record_times("Day5b", &day5::solve_b);
 }
