@@ -137,18 +137,12 @@ mod tests {
 
     #[test]
     fn should_solve_sample() {
-        assert_eq!(
-            count_overlaps("./src/day3/test_claims.txt".to_string(), 8),
-            4
-        );
+        assert_eq!(count_overlaps("./src/day3/test.txt".to_string(), 8), 4);
     }
 
     #[test]
     fn should_solve_clean_sample() {
-        assert_eq!(
-            find_no_overlaps("./src/day3/test_claims.txt".to_string()),
-            "3"
-        );
+        assert_eq!(find_no_overlaps("./src/day3/test.txt".to_string()), "3");
     }
 
     #[bench]
