@@ -197,14 +197,14 @@ mod tests {
     }
 
     #[test]
-    fn should_solve_sample() {
+    fn should_solve_sample4a() {
         let actual = determine_optimal_time_by_sum("./src/day4/test.txt".to_string());
 
         assert_eq!(actual, 240);
     }
 
     #[test]
-    fn should_solve_sample2() {
+    fn should_solve_sample4b() {
         let actual = determine_optimal_time_by_freq("./src/day4/test.txt".to_string());
 
         assert_eq!(actual, 4455);

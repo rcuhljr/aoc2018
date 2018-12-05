@@ -135,7 +135,7 @@ mod tests {
     }
 
     #[test]
-    fn should_solve_sample() {
+    fn should_solve_sample3a() {
         assert_eq!(count_overlaps("./src/day3/test.txt".to_string(), 8), 4);
     }
 
