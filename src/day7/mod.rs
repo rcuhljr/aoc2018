@@ -86,11 +86,7 @@ fn time_path(filename: String, offset: i32, work_count: i32) -> String {
         possible_steps.dedup();
 
         for index in 0..cmp::min(possible_steps.len(), workers as usize) {
-            let mut b = [0; 1];
-            possible_steps[index].encode_utf8(&mut b);
-            let mut done_time = (b[0] - 64) as i32;
-            done_time += offset + timer;
-
+            let done_time = char_to_offset_time(&possible_steps[index], &offset, &timer);
             let finished_at = done_at.entry(done_time).or_insert(vec![]);
             finished_at.push(possible_steps[index]);
             workers -= 1;
@@ -99,6 +95,13 @@ fn time_path(filename: String, offset: i32, work_count: i32) -> String {
     }
 
     timer.to_string()
+}
+
+fn char_to_offset_time(letter: &char, offset: &i32, timer: &i32) -> i32 {
+    let mut b = [0; 1];
+    letter.encode_utf8(&mut b);
+    let result_time = (b[0] - 64) as i32;
+    result_time + offset + timer
 }
 
 fn find_path_graph(filename: String) -> String {
