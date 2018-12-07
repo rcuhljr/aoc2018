@@ -28,11 +28,7 @@ fn time_path(filename: String, offset: i32, work_count: i32) -> String {
         if done_at.contains_key(&timer) {
             for letter in done_at.get(&timer).unwrap() {
                 done.push(*letter);
-                in_work = in_work
-                    .iter()
-                    .filter(|x| *x != letter)
-                    .map(|x| *x)
-                    .collect();
+                in_work = in_work.iter().cloned().filter(|x| x != letter).collect();
                 workers += 1;
                 graph.remove_node(*letter);
             }
@@ -49,8 +45,8 @@ fn time_path(filename: String, offset: i32, work_count: i32) -> String {
         }
         let ready: Vec<char> = options
             .iter()
+            .cloned()
             .filter(|o| !in_work.contains(o))
-            .map(|c| *c)
             .collect();
 
         if ready.len() == 0 {
