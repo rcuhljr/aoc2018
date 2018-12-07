@@ -15,24 +15,8 @@ pub fn solve_b() -> String {
 
 fn time_path(filename: String, offset: i32, work_count: i32) -> String {
     let steps = parse_data(utility::load_strings(filename));
-    let mut alphabet: Vec<char> = vec![];
-    let mut parents: Vec<char> = vec![];
 
-    steps.iter().for_each(|step| {
-        alphabet.push(step.0);
-        alphabet.push(step.1);
-        parents.push(step.0);
-    });
-
-    alphabet.sort_unstable();
-    alphabet.dedup();
-    parents.sort_unstable();
-    parents.dedup();
-
-    let end_base: char = *alphabet
-        .iter()
-        .find(|letter| !parents.contains(letter))
-        .unwrap();
+    let mut graph = GraphMap::<char, (char, char), Directed>::from_edges(&steps);
 
     let mut workers = work_count;
     let mut done_at: HashMap<i32, Vec<char>> = HashMap::new();
@@ -50,47 +34,35 @@ fn time_path(filename: String, offset: i32, work_count: i32) -> String {
                     .map(|x| *x)
                     .collect();
                 workers += 1;
+                graph.remove_node(*letter);
             }
-        }
-        if done.len() == alphabet.len() {
-            break;
         }
         if workers == 0 {
             continue;
         }
-
-        let blocks: Vec<char> = steps
-            .iter()
-            .filter(|x| !done.contains(&x.0))
-            .map(|x| x.1)
-            .collect();
-
-        let mut possible_steps: Vec<char> = steps
-            .iter()
-            .filter(|letter| {
-                !in_work.contains(&letter.0)
-                    && !blocks.contains(&letter.0)
-                    && !done.contains(&letter.0)
-            }).map(|x| x.0)
-            .collect();
-
-        if possible_steps.len() == 0 {
-            if in_work.len() == 0 && blocks.len() == 0 {
-                possible_steps.push(end_base);
-            } else {
+        let options = find_unblocked(&graph);
+        if options.len() == 0 {
+            if in_work.len() > 0 {
                 continue;
             }
+            break;
+        }
+        let ready: Vec<char> = options
+            .iter()
+            .filter(|o| !in_work.contains(o))
+            .map(|c| *c)
+            .collect();
+
+        if ready.len() == 0 {
+            continue;
         }
 
-        possible_steps.sort_unstable();
-        possible_steps.dedup();
-
-        for index in 0..cmp::min(possible_steps.len(), workers as usize) {
-            let done_time = char_to_offset_time(&possible_steps[index], &offset, &timer);
+        for index in 0..cmp::min(ready.len(), workers as usize) {
+            let done_time = char_to_offset_time(&ready[index], &offset, &timer);
             let finished_at = done_at.entry(done_time).or_insert(vec![]);
-            finished_at.push(possible_steps[index]);
+            finished_at.push(ready[index]);
             workers -= 1;
-            in_work.push(possible_steps[index]);
+            in_work.push(ready[index]);
         }
     }
 
