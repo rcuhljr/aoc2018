@@ -1,9 +1,12 @@
 use super::utility;
+use petgraph::graphmap::GraphMap;
+use petgraph::Directed;
+use petgraph::Direction;
 use std::cmp;
 use std::collections::HashMap;
 
 pub fn solve_a() -> String {
-    find_path("input7.txt".to_string())
+    find_path_graph("input7.txt".to_string())
 }
 
 pub fn solve_b() -> String {
@@ -11,7 +14,7 @@ pub fn solve_b() -> String {
 }
 
 fn time_path(filename: String, offset: i32, work_count: i32) -> String {
-    let mut steps = parse_data(utility::load_strings(filename));
+    let steps = parse_data(utility::load_strings(filename));
     let mut alphabet: Vec<char> = vec![];
     let mut parents: Vec<char> = vec![];
 
@@ -37,9 +40,7 @@ fn time_path(filename: String, offset: i32, work_count: i32) -> String {
     let mut done: Vec<char> = vec![];
     let mut in_work: Vec<char> = vec![];
     loop {
-        //pass time
         timer += 1;
-        //finish any workers
         if done_at.contains_key(&timer) {
             for letter in done_at.get(&timer).unwrap() {
                 done.push(*letter);
@@ -48,7 +49,6 @@ fn time_path(filename: String, offset: i32, work_count: i32) -> String {
                     .filter(|x| *x != letter)
                     .map(|x| *x)
                     .collect();
-                // println!("done: {:?} at {:?}", letter, timer);
                 workers += 1;
             }
         }
@@ -58,7 +58,7 @@ fn time_path(filename: String, offset: i32, work_count: i32) -> String {
         if workers == 0 {
             continue;
         }
-        //pick first N steps
+
         let blocks: Vec<char> = steps
             .iter()
             .filter(|x| !done.contains(&x.0))
@@ -101,53 +101,29 @@ fn time_path(filename: String, offset: i32, work_count: i32) -> String {
     timer.to_string()
 }
 
-fn find_path(filename: String) -> String {
-    let mut steps = parse_data(utility::load_strings(filename));
-    let mut alphabet: Vec<char> = vec![];
-    let mut parents: Vec<char> = vec![];
+fn find_path_graph(filename: String) -> String {
+    let steps = parse_data(utility::load_strings(filename));
+    let mut graph = GraphMap::<char, (char, char), Directed>::from_edges(&steps);
 
-    steps.iter().for_each(|step| {
-        alphabet.push(step.0);
-        alphabet.push(step.1);
-        parents.push(step.0);
-    });
-
-    alphabet.sort_unstable();
-    alphabet.dedup();
-    parents.sort_unstable();
-    parents.dedup();
-
-    let end_base: char = *alphabet
-        .iter()
-        .find(|letter| !parents.contains(letter))
-        .unwrap();
-
-    let mut unwrap_path: Vec<char> = vec![];
-
-    unwrap_path.sort_unstable();
-
-    for index in 0..alphabet.len() {
-        let blocks: Vec<char> = steps
-            .iter()
-            .filter(|x| !unwrap_path.contains(&x.0))
-            .map(|x| x.1)
-            .collect();
-
-        let mut possible_steps: Vec<(char, char)> = steps
-            .iter()
-            .filter(|letter| !blocks.contains(&letter.0) && !unwrap_path.contains(&letter.0))
-            .map(|x| *x)
-            .collect();
-
-        let keep = possible_steps.iter().min_by_key(|x| x.0);
-        if keep.is_some() {
-            unwrap_path.push(keep.unwrap().0);
-        } else {
-            unwrap_path.push(end_base);
+    let mut result: Vec<char> = vec![];
+    loop {
+        let options = find_unblocked(&graph);
+        if options.len() == 0 {
+            break;
         }
+        let remove = options.iter().min().unwrap();
+        result.push(*remove);
+        graph.remove_node(*remove);
     }
 
-    unwrap_path.iter().collect()
+    result.iter().collect()
+}
+
+fn find_unblocked(graph: &GraphMap<char, (char, char), Directed>) -> Vec<char> {
+    graph
+        .nodes()
+        .filter(|n| graph.neighbors_directed(*n, Direction::Incoming).count() == 0)
+        .collect::<Vec<char>>()
 }
 
 fn parse_data(data: Vec<String>) -> Vec<(char, char)> {
@@ -164,7 +140,13 @@ mod tests {
 
     #[test]
     fn should_solve_sample7a() {
-        let actual = find_path("./src/day7/test.txt".to_string());
+        let actual = find_path_graph("./src/day7/test.txt".to_string());
+        assert_eq!(actual, "CABDFE".to_string());
+    }
+
+    #[test]
+    fn should_solve_sample7a_graph() {
+        let actual = find_path_graph("./src/day7/test.txt".to_string());
         assert_eq!(actual, "CABDFE".to_string());
     }
 

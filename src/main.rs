@@ -1,3 +1,4 @@
+extern crate petgraph;
 extern crate regex;
 use std::time::Instant;
 mod day1;

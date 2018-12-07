@@ -6,3 +6,4 @@ authors = ["Robert Uhl <rcuhljr@gmail.com>"]
 [dependencies]
 regex = "1.1.0"
 lazy_static = "1.2.0"
+petgraph = "0.4.13"
