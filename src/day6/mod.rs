@@ -54,22 +54,22 @@ fn find_largest_area(filename: &str) -> i32 {
     let mut result = HashMap::new();
     let size: i32 = parse_data(utility::load_strings(filename.to_string()), &mut goals);
 
-    for index in 0..(size * size) {
-        let loc_x: i32 = (index as i32) % size;
-        let loc_y: i32 = (index as i32) / size;
-        let mut distances: Vec<(i32, i32)> = goals
-            .iter()
-            .map(|(coords, id)| {
-                let dist = (coords.0 - loc_x).abs() + (coords.1 - loc_y).abs();
-                (dist, *id)
-            }).collect();
-        distances.sort_by_key(|pair| pair.0);
-        if distances[0].0 != distances[1].0 {
-            if loc_x == 0 || loc_x == size - 1 || loc_y == 0 || loc_y == size - 1 {
-                infinite.insert(distances[0].1.clone(), true);
+    for loc_x in 0..size {
+        for loc_y in 0..size {
+            let mut distances: Vec<(i32, i32)> = goals
+                .iter()
+                .map(|(coords, id)| {
+                    let dist = (coords.0 - loc_x).abs() + (coords.1 - loc_y).abs();
+                    (dist, *id)
+                }).collect();
+            distances.sort_by_key(|pair| pair.0);
+            if distances[0].0 != distances[1].0 && !infinite.contains_key(&distances[0].1) {
+                if loc_x == 0 || loc_x == size - 1 || loc_y == 0 || loc_y == size - 1 {
+                    infinite.insert(distances[0].1.clone(), true);
+                }
+                let counter = result.entry(distances[0].1).or_insert(0);
+                *counter += 1;
             }
-            let counter = result.entry(distances[0].1).or_insert(0);
-            *counter += 1;
         }
     }
 
