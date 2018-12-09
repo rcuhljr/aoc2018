@@ -9,6 +9,7 @@ mod day5;
 mod day6;
 mod day7;
 mod day8;
+mod day9;
 mod utility;
 
 fn record_times(format: &str, f: &Fn() -> String) {
@@ -35,4 +36,6 @@ fn main() {
     record_times("Day7b", &day7::solve_b);
     record_times("Day8a", &day8::solve_a);
     record_times("Day8b", &day8::solve_b);
+    record_times("Day9a", &day9::solve_a);
+    record_times("Day9b", &day9::solve_b);
 }
