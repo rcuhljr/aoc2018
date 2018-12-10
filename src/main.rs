@@ -1,7 +1,10 @@
+#[macro_use]
+extern crate lazy_static;
 extern crate petgraph;
 extern crate regex;
 use std::time::Instant;
 mod day1;
+mod day10;
 mod day2;
 mod day3;
 mod day4;
@@ -38,4 +41,6 @@ fn main() {
     record_times("Day8b", &day8::solve_b);
     record_times("Day9a", &day9::solve_a);
     record_times("Day9b", &day9::solve_b);
+    record_times("Day10a", &day10::solve_a);
+    record_times("Day10b", &day10::solve_b);
 }
