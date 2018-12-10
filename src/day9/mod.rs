@@ -1,4 +1,4 @@
-use std::collections::LinkedList;
+use std::collections::VecDeque;
 
 pub fn solve_a() -> String {
     play_game(419, 71052).to_string()
@@ -8,7 +8,7 @@ pub fn solve_b() -> String {
     play_game(419, 7105200).to_string()
 }
 
-fn move_cw<T>(list: &mut LinkedList<T>, offset: usize) {
+fn move_cw<T>(list: &mut VecDeque<T>, offset: usize) {
     let mut temp;
     for _ in 0..offset {
         temp = list.pop_front().unwrap();
@@ -16,7 +16,7 @@ fn move_cw<T>(list: &mut LinkedList<T>, offset: usize) {
     }
 }
 
-fn move_ccw<T>(list: &mut LinkedList<T>, offset: usize) {
+fn move_ccw<T>(list: &mut VecDeque<T>, offset: usize) {
     let mut temp;
     for _ in 0..offset {
         temp = list.pop_back().unwrap();
@@ -26,7 +26,7 @@ fn move_ccw<T>(list: &mut LinkedList<T>, offset: usize) {
 
 fn play_game(players: usize, last_marble: usize) -> usize {
     let mut scores = vec![0; players];
-    let mut circle: LinkedList<usize> = LinkedList::new();
+    let mut circle: VecDeque<usize> = VecDeque::new();
     circle.push_front(0);
 
     for play in 1..last_marble + 1 {
