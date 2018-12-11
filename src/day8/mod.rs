@@ -66,24 +66,18 @@ fn parse_entry_rec(id: usize, raw_entries: &mut Vec<i32>) -> (TNode, Vec<i32>) {
 
     let mut children = vec![];
     let mut remainder = raw_entries.split_off(2);
-    if child_count == 0 {
-        let mut entries: Vec<i32> = vec![0; meta_count];
-        entries.copy_from_slice(&remainder[0..meta_count]);
-        let remainder = remainder.split_off(meta_count);
 
-        (TNode::new(id, entries, children), remainder)
-    } else {
-        for i in 0..child_count {
-            let result = parse_entry_rec(id + i as usize + 1, &mut remainder);
-            children.push(result.0);
-            remainder = result.1;
-        }
-        let mut entries: Vec<i32> = vec![0; meta_count];
-        entries.copy_from_slice(&remainder[0..meta_count]);
-        remainder = remainder.split_off(meta_count);
-
-        (TNode::new(id, entries, children), remainder)
+    for i in 0..child_count {
+        let result = parse_entry_rec(id + i as usize + 1, &mut remainder);
+        children.push(result.0);
+        remainder = result.1;
     }
+
+    let mut entries: Vec<i32> = vec![0; meta_count];
+    entries.copy_from_slice(&remainder[0..meta_count]);
+    remainder = remainder.split_off(meta_count);
+
+    (TNode::new(id, entries, children), remainder)
 }
 
 fn parse_data(data: &mut Vec<String>) -> Vec<i32> {
