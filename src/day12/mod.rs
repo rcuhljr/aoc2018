@@ -1,5 +1,6 @@
 use super::utility;
 use std::cmp;
+use std::collections::VecDeque;
 
 pub fn solve_a() -> String {
     sum_living_plants("input12.txt".to_string(), 20).to_string()
@@ -10,56 +11,73 @@ pub fn solve_b() -> String {
     // sum_living_plants("input12.txt".to_string(), 10).to_string()
 }
 
-fn sum_pots(pots: &[bool], offset: i32) -> i32 {
-    let mut sum: i32 = 0;
+fn sum_pots(pots: &VecDeque<bool>, offset: i64) -> i64 {
+    let mut sum: i64 = 0;
     pots.iter().enumerate().for_each(|pair| {
         let (index, data) = pair;
         if *data {
-            sum += index as i32 - offset;
+            sum += index as i64 - offset;
         }
     });
     sum
 }
 
-fn pretty_print_row(pots: &[bool]) {
+fn pretty_print_row(pots: &VecDeque<bool>, offset: i64) {
     println!(
-        "{:?}",
+        "{:?}:{:?}",
+        offset,
         pots.iter()
             .map(|x| if *x { '#' } else { '.' })
             .collect::<String>()
     )
 }
 
-fn sum_living_plants(filename: String, gens: usize) -> i32 {
+fn sum_living_plants(filename: String, gens: usize) -> i64 {
     let (state, rules) = get_initial_state_and_rules(filename);
-    let mut offset = 4;
-    let growth_factor = 1000;
-    let mut pots = vec![false; offset];
-    pots.append(&mut state.clone());
-    pots.append(&mut vec![false; offset]);
-    for i in 0..gens {
+    let mut offset: i64 = 10;
+    let mut pots = VecDeque::new();
+    pots.push_back(false);
+    pots.push_back(false);
+    pots.push_back(false);
+    pots.push_back(false);
+    pots.push_back(false);
+    pots.push_back(false);
+    pots.push_back(false);
+    pots.push_back(false);
+    pots.push_back(false);
+    pots.push_back(false);
+    state.iter().for_each(|x| pots.push_back(*x));
+    pots.push_back(false);
+    pots.push_back(false);
+    pots.push_back(false);
+    for i in 1..gens + 1 {
+        // pretty_print_row(&pots, offset);
         if pots[pots.len() - 3] == true {
             // println!("growing");
             // println!("{:?}", pots);
-            pots.append(&mut vec![false; growth_factor]);
+            pots.push_back(false);
             // println!("{:?}", pots);
         }
-        if pots.iter().position(|x| *x == true).unwrap() > 102 {
-            let mut new_pots = vec![false; pots.len() - 100];
-            offset += 100;
-            new_pots[..].clone_from_slice(&pots[100..]);
-            pots = new_pots;
+        if pots.len() > 200 {
+            offset -= 1;
+            pots.pop_front();
+        }
+        process_generation(&mut pots, &rules);
+
+        if i % 100 == 0 {
+            println!("{:?}:{:?}:{:?}", i, offset, sum_pots(&pots, offset));
+            pretty_print_row(&pots, offset);
         }
 
-        process_generation(&mut pots, &rules);
-        if i % 1000000 == 0 {
-            println!("million:{:?}", i / 1000000);
+        if i == 1000 {
+            break;
         }
-        // pretty_print_row(&pots);
     }
+    // pretty_print_row(&pots, offset);
     // println!("{:?}", pots);
 
-    sum_pots(&pots, offset as i32)
+    // pretty_print_row(&pots, offset);
+    sum_pots(&pots, offset as i64)
 }
 
 fn get_initial_state_and_rules(filename: String) -> (Vec<bool>, Vec<Vec<bool>>) {
@@ -87,17 +105,23 @@ fn get_initial_state_and_rules(filename: String) -> (Vec<bool>, Vec<Vec<bool>>) 
     (states, rules)
 }
 
-fn process_generation(pots: &mut [bool], rules: &Vec<Vec<bool>>) {
+fn process_generation(pots: &mut VecDeque<bool>, rules: &Vec<Vec<bool>>) {
     let mut updates: Vec<(usize, bool)> = vec![(0, false), (1, false)];
 
-    pots.windows(5).enumerate().for_each(|pair| {
-        let (index, data) = pair;
-        if let Some(rule) = rules.iter().find(|rule| rule[0..5] == *data) {
-            updates.push((index + 2, rule[5]));
+    for index in 2..pots.len() - 2 {
+        let data = vec![
+            pots[index - 2],
+            pots[index - 1],
+            pots[index - 0],
+            pots[index + 1],
+            pots[index + 2],
+        ];
+        if let Some(rule) = rules.iter().find(|rule| rule[0..5] == data[..]) {
+            updates.push((index, rule[5]));
         } else {
-            updates.push((index + 2, false));
+            updates.push((index, false));
         }
-    });
+    }
 
     updates.iter().for_each(|pair| pots[pair.0] = pair.1);
 }
@@ -113,8 +137,24 @@ mod tests {
     }
 
     #[test]
+    fn should_sum_pots() {
+        let mut test = VecDeque::new();
+        test.push_back(false);
+
+        let actual = sum_pots(&test, -942);
+        assert_eq!(actual, 5);
+    }
+
+    #[test]
     fn should_apply_generation() {
-        let mut actual = vec![false, true, true, true, false, false, false];
+        let mut actual = VecDeque::new();
+        actual.push_back(false);
+        actual.push_back(true);
+        actual.push_back(true);
+        actual.push_back(true);
+        actual.push_back(false);
+        actual.push_back(false);
+        actual.push_back(false);
 
         process_generation(
             &mut actual,
