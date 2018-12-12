@@ -20,19 +20,10 @@ fn sum_pots(pots: &VecDeque<bool>, offset: i64) -> i64 {
     sum
 }
 
-fn pretty_print_row(pots: &VecDeque<bool>, offset: i64) {
-    println!(
-        "{:?}:{:?}",
-        offset,
-        pots.iter()
-            .map(|x| if *x { '#' } else { '.' })
-            .collect::<String>()
-    )
-}
-
 fn sum_living_plants(filename: String, gens: i64) -> i64 {
     let (state, rules) = get_initial_state_and_rules(filename);
     let mut offset: i64 = 10;
+    let convergance_step = 25;
     let mut pots = VecDeque::new();
     let mut old_scores = (0, 0, 0);
     for _ in 0..offset {
@@ -53,11 +44,11 @@ fn sum_living_plants(filename: String, gens: i64) -> i64 {
         }
         process_generation(&mut pots, &rules);
 
-        if i % 100 == 0 {
+        if i % convergance_step == 0 {
             old_scores = (old_scores.1, old_scores.2, sum_pots(&pots, offset));
             if old_scores.2 - old_scores.1 == old_scores.1 - old_scores.0 {
-                let growth_per_hundred = old_scores.2 - old_scores.1;
-                return old_scores.2 + (gens - i as i64) / 100 * growth_per_hundred as i64;
+                let delta_per_step = old_scores.2 - old_scores.1;
+                return old_scores.2 + (gens - i as i64) / convergance_step * delta_per_step as i64;
             }
         }
     }
@@ -92,15 +83,10 @@ fn get_initial_state_and_rules(filename: String) -> (Vec<bool>, Vec<Vec<bool>>) 
 
 fn process_generation(pots: &mut VecDeque<bool>, rules: &Vec<Vec<bool>>) {
     let mut updates: Vec<(usize, bool)> = vec![(0, false), (1, false)];
+    let reader: Vec<bool> = pots.iter().cloned().collect();
 
     for index in 2..pots.len() - 2 {
-        let data = vec![
-            pots[index - 2],
-            pots[index - 1],
-            pots[index - 0],
-            pots[index + 1],
-            pots[index + 2],
-        ];
+        let data = &reader[index - 2..index + 3];
         if let Some(rule) = rules.iter().find(|rule| rule[0..5] == data[..]) {
             updates.push((index, rule[5]));
         } else {
