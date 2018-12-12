@@ -1,5 +1,4 @@
 use super::utility;
-use std::cmp;
 use std::collections::VecDeque;
 
 pub fn solve_a() -> String {
@@ -8,7 +7,6 @@ pub fn solve_a() -> String {
 
 pub fn solve_b() -> String {
     sum_living_plants("input12.txt".to_string(), 50000000000).to_string()
-    // sum_living_plants("input12.txt".to_string(), 10).to_string()
 }
 
 fn sum_pots(pots: &VecDeque<bool>, offset: i64) -> i64 {
@@ -32,31 +30,22 @@ fn pretty_print_row(pots: &VecDeque<bool>, offset: i64) {
     )
 }
 
-fn sum_living_plants(filename: String, gens: usize) -> i64 {
+fn sum_living_plants(filename: String, gens: i64) -> i64 {
     let (state, rules) = get_initial_state_and_rules(filename);
     let mut offset: i64 = 10;
     let mut pots = VecDeque::new();
-    pots.push_back(false);
-    pots.push_back(false);
-    pots.push_back(false);
-    pots.push_back(false);
-    pots.push_back(false);
-    pots.push_back(false);
-    pots.push_back(false);
-    pots.push_back(false);
-    pots.push_back(false);
-    pots.push_back(false);
+    let mut old_scores = (0, 0, 0);
+    for _ in 0..offset {
+        pots.push_back(false);
+    }
     state.iter().for_each(|x| pots.push_back(*x));
     pots.push_back(false);
     pots.push_back(false);
     pots.push_back(false);
+
     for i in 1..gens + 1 {
-        // pretty_print_row(&pots, offset);
         if pots[pots.len() - 3] == true {
-            // println!("growing");
-            // println!("{:?}", pots);
             pots.push_back(false);
-            // println!("{:?}", pots);
         }
         if pots.len() > 200 {
             offset -= 1;
@@ -65,18 +54,14 @@ fn sum_living_plants(filename: String, gens: usize) -> i64 {
         process_generation(&mut pots, &rules);
 
         if i % 100 == 0 {
-            println!("{:?}:{:?}:{:?}", i, offset, sum_pots(&pots, offset));
-            pretty_print_row(&pots, offset);
-        }
-
-        if i == 1000 {
-            break;
+            old_scores = (old_scores.1, old_scores.2, sum_pots(&pots, offset));
+            if old_scores.2 - old_scores.1 == old_scores.1 - old_scores.0 {
+                let growth_per_hundred = old_scores.2 - old_scores.1;
+                return old_scores.2 + (gens - i as i64) / 100 * growth_per_hundred as i64;
+            }
         }
     }
-    // pretty_print_row(&pots, offset);
-    // println!("{:?}", pots);
 
-    // pretty_print_row(&pots, offset);
     sum_pots(&pots, offset as i64)
 }
 
@@ -137,12 +122,9 @@ mod tests {
     }
 
     #[test]
-    fn should_sum_pots() {
-        let mut test = VecDeque::new();
-        test.push_back(false);
-
-        let actual = sum_pots(&test, -942);
-        assert_eq!(actual, 5);
+    fn should_solve_realday12() {
+        let actual = sum_living_plants("input12.txt".to_string(), 50000000000);
+        assert_eq!(actual, 2550000000883);
     }
 
     #[test]
