@@ -38,13 +38,8 @@ impl PartialOrd for CartData {
 fn run_simulation(filename: String, removal: bool) -> (i32, i32) {
     let (track, mut carts) = parse_input(filename);
     let mut cart_locs: HashMap<(i32, i32), bool> = HashMap::new();
-    let mut loop_count = 0;
 
     loop {
-        loop_count += 1;
-        if loop_count % 10000 == 0 {
-            println!("{:?}", carts.len());
-        }
         cart_locs.clear();
         carts.iter().for_each(|cart| {
             cart_locs.insert((cart.x, cart.y), true);
@@ -77,11 +72,9 @@ fn run_simulation(filename: String, removal: bool) -> (i32, i32) {
             //check crash
             if cart_locs.contains_key(&(newx, newy)) {
                 if removal {
-                    // println!("whoops2");
                     dead_carts.push((newx, newy));
                     continue;
                 } else {
-                    // println!("whoops3");
                     return (newx, newy);
                 }
             }
