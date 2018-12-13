@@ -53,7 +53,7 @@ fn run_simulation(filename: String, removal: bool) -> (i32, i32) {
             let mut newy = cart.y;
             let mut newdir = cart.dir;
             let mut newturn = cart.turn;
-            if removal && dead_carts
+            if dead_carts
                 .iter()
                 .any(|data| data.0 == cart.x && data.1 == cart.y)
             {
@@ -129,18 +129,14 @@ fn run_simulation(filename: String, removal: bool) -> (i32, i32) {
             new_carts.push(CartData::new(newx, newy, newdir, newturn));
         }
 
-        if removal {
-            carts = new_carts
-                .iter()
-                .filter(|cart| {
-                    dead_carts
-                        .iter()
-                        .all(|data| data.0 != cart.x || data.1 != cart.y)
-                }).cloned()
-                .collect();
-        } else {
-            carts = new_carts;
-        }
+        carts = new_carts
+            .iter()
+            .filter(|cart| {
+                dead_carts
+                    .iter()
+                    .all(|data| data.0 != cart.x || data.1 != cart.y)
+            }).cloned()
+            .collect();
 
         if removal && carts.len() == 1 {
             return (carts[0].x, carts[0].y);
@@ -161,7 +157,7 @@ fn is_intersection(x: i32, y: i32, track: &Vec<Vec<char>>) -> bool {
 }
 
 fn parse_input(filename: String) -> (Vec<Vec<char>>, Vec<CartData>) {
-    let mut raw_data = utility::load_strings(filename);
+    let raw_data = utility::load_strings(filename);
     let mut track: Vec<Vec<char>> = Vec::new();
     let mut carts: Vec<CartData> = Vec::new();
 
