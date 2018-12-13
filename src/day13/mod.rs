@@ -81,46 +81,38 @@ fn run_simulation(filename: String, removal: bool) -> (i32, i32) {
             //determine new facing
             let new_space = get_spot(newx, newy, &track);
             if new_space == '/' {
-                if cart.dir == '<' {
-                    newdir = 'v';
-                } else if cart.dir == '>' {
-                    newdir = '^';
-                } else if cart.dir == 'v' {
-                    newdir = '<';
-                } else if cart.dir == '^' {
-                    newdir = '>';
+                match cart.dir {
+                    '<' => newdir = 'v',
+                    '>' => newdir = '^',
+                    'v' => newdir = '<',
+                    '^' => newdir = '>',
+                    _ => (),
                 }
             } else if new_space == '\\' {
-                if cart.dir == '<' {
-                    newdir = '^';
-                } else if cart.dir == '>' {
-                    newdir = 'v';
-                } else if cart.dir == 'v' {
-                    newdir = '>';
-                } else if cart.dir == '^' {
-                    newdir = '<';
+                match cart.dir {
+                    '<' => newdir = '^',
+                    '>' => newdir = 'v',
+                    'v' => newdir = '>',
+                    '^' => newdir = '<',
+                    _ => (),
                 }
             } else if new_space == '+' {
                 newturn += 1;
                 if newturn % 3 == 0 {
-                    if cart.dir == '<' {
-                        newdir = '^';
-                    } else if cart.dir == '>' {
-                        newdir = 'v';
-                    } else if cart.dir == 'v' {
-                        newdir = '<';
-                    } else if cart.dir == '^' {
-                        newdir = '>';
+                    match cart.dir {
+                        '<' => newdir = '^',
+                        '>' => newdir = 'v',
+                        'v' => newdir = '<',
+                        '^' => newdir = '>',
+                        _ => (),
                     }
                 } else if newturn % 3 == 1 {
-                    if cart.dir == '<' {
-                        newdir = 'v';
-                    } else if cart.dir == '>' {
-                        newdir = '^';
-                    } else if cart.dir == 'v' {
-                        newdir = '>';
-                    } else if cart.dir == '^' {
-                        newdir = '<';
+                    match cart.dir {
+                        '<' => newdir = 'v',
+                        '>' => newdir = '^',
+                        'v' => newdir = '>',
+                        '^' => newdir = '<',
+                        _ => (),
                     }
                 }
             }
