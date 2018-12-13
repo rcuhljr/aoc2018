@@ -60,15 +60,15 @@ fn run_simulation(filename: String, removal: bool) -> (i32, i32) {
                 continue;
             }
             //find new loc
-            if newdir == '<' {
-                newx -= 1;
-            } else if newdir == '>' {
-                newx += 1;
-            } else if newdir == 'v' {
-                newy += 1;
-            } else if newdir == '^' {
-                newy -= 1;
+
+            match newdir {
+                '<' => newx -= 1,
+                '>' => newx += 1,
+                'v' => newy += 1,
+                '^' => newy -= 1,
+                _ => (),
             }
+
             //check crash
             if cart_locs.contains_key(&(newx, newy)) {
                 if removal {
@@ -145,7 +145,7 @@ fn run_simulation(filename: String, removal: bool) -> (i32, i32) {
 }
 
 fn get_spot(x: i32, y: i32, track: &Vec<Vec<char>>) -> char {
-    if y >= track.len() as i32 || y < 0 || x < 0 || x >= track[0].len() as i32 {
+    if (y >= track.len() as i32) || y < 0 || x < 0 || (x >= track[0].len() as i32) {
         ' '
     } else {
         track[y as usize][x as usize]
@@ -165,6 +165,9 @@ fn parse_input(filename: String) -> (Vec<Vec<char>>, Vec<CartData>) {
         .iter()
         .for_each(|row| track.push(row.chars().collect()));
 
+    let updown_symbols = vec!['/', '\\', '|', '+'];
+    let leftright_symbols = vec!['/', '\\', '-', '+'];
+
     for y in 0..track.len() as i32 {
         for x in 0..track[y as usize].len() as i32 {
             let space = track[y as usize][x as usize];
@@ -172,84 +175,24 @@ fn parse_input(filename: String) -> (Vec<Vec<char>>, Vec<CartData>) {
                 carts.push(CartData::new(x as i32, y as i32, space.clone(), 0));
                 if is_intersection(x, y, &track) {
                     track[y as usize][x as usize] = '+';
-                } else if (get_spot(x - 1, y, &track) == '/'
-                    || get_spot(x - 1, y, &track) == '\\'
-                    || get_spot(x - 1, y, &track) == '-'
-                    || get_spot(x - 1, y, &track) == '+'
-                    || get_spot(x - 1, y, &track) == '>'
-                    || get_spot(x - 1, y, &track) == '<')
-                    && (get_spot(x + 1, y, &track) == '/'
-                        || get_spot(x + 1, y, &track) == '\\'
-                        || get_spot(x + 1, y, &track) == '-'
-                        || get_spot(x + 1, y, &track) == '+'
-                        || get_spot(x + 1, y, &track) == '>'
-                        || get_spot(x + 1, y, &track) == '<')
+                } else if leftright_symbols.contains(&get_spot(x - 1, y, &track))
+                    && leftright_symbols.contains(&get_spot(x + 1, y, &track))
                 {
                     track[y as usize][x as usize] = '-';
-                } else if (get_spot(x, y - 1, &track) == '/'
-                    || get_spot(x, y - 1, &track) == '|'
-                    || get_spot(x, y - 1, &track) == 'v'
-                    || get_spot(x, y - 1, &track) == '+'
-                    || get_spot(x, y - 1, &track) == '^'
-                    || get_spot(x, y - 1, &track) == '\\')
-                    && (get_spot(x, y + 1, &track) == '/'
-                        || get_spot(x, y + 1, &track) == '|'
-                        || get_spot(x, y + 1, &track) == '^'
-                        || get_spot(x, y + 1, &track) == 'v'
-                        || get_spot(x, y + 1, &track) == '+'
-                        || get_spot(x, y + 1, &track) == '\\')
+                } else if updown_symbols.contains(&get_spot(x, y - 1, &track))
+                    && updown_symbols.contains(&get_spot(x, y + 1, &track))
                 {
                     track[y as usize][x as usize] = '|';
-                } else if ((get_spot(x, y - 1, &track) == '/'
-                    || get_spot(x, y - 1, &track) == '|'
-                    || get_spot(x, y - 1, &track) == '+'
-                    || get_spot(x, y - 1, &track) == 'v'
-                    || get_spot(x, y - 1, &track) == '^'
-                    || get_spot(x, y - 1, &track) == '\\')
-                    && (get_spot(x - 1, y, &track) == '/'
-                        || get_spot(x - 1, y, &track) == '-'
-                        || get_spot(x - 1, y, &track) == '+'
-                        || get_spot(x - 1, y, &track) == '>'
-                        || get_spot(x - 1, y, &track) == '<'
-                        || get_spot(x - 1, y, &track) == '\\'))
-                    || ((get_spot(x, y + 1, &track) == '/'
-                        || get_spot(x, y + 1, &track) == '|'
-                        || get_spot(x, y + 1, &track) == '+'
-                        || get_spot(x, y + 1, &track) == 'v'
-                        || get_spot(x, y + 1, &track) == '^'
-                        || get_spot(x, y + 1, &track) == '\\')
-                        && (get_spot(x - 1, y, &track) == '/'
-                            || get_spot(x + 1, y, &track) == '-'
-                            || get_spot(x + 1, y, &track) == '+'
-                            || get_spot(x + 1, y, &track) == '>'
-                            || get_spot(x + 1, y, &track) == '<'
-                            || get_spot(x + 1, y, &track) == '\\'))
+                } else if (updown_symbols.contains(&get_spot(x, y - 1, &track))
+                    && leftright_symbols.contains(&get_spot(x - 1, y, &track)))
+                    || (updown_symbols.contains(&get_spot(x, y + 1, &track))
+                        && leftright_symbols.contains(&get_spot(x + 1, y, &track)))
                 {
                     track[y as usize][x as usize] = '/';
-                } else if ((get_spot(x, y - 1, &track) == '/'
-                    || get_spot(x, y - 1, &track) == '|'
-                    || get_spot(x, y - 1, &track) == '+'
-                    || get_spot(x, y - 1, &track) == 'v'
-                    || get_spot(x, y - 1, &track) == '^'
-                    || get_spot(x, y - 1, &track) == '\\')
-                    && (get_spot(x + 1, y, &track) == '/'
-                        || get_spot(x + 1, y, &track) == '-'
-                        || get_spot(x + 1, y, &track) == '+'
-                        || get_spot(x + 1, y, &track) == '>'
-                        || get_spot(x + 1, y, &track) == '<'
-                        || get_spot(x + 1, y, &track) == '\\'))
-                    || ((get_spot(x, y + 1, &track) == '/'
-                        || get_spot(x, y + 1, &track) == '|'
-                        || get_spot(x, y + 1, &track) == '+'
-                        || get_spot(x, y + 1, &track) == 'v'
-                        || get_spot(x, y + 1, &track) == '^'
-                        || get_spot(x, y + 1, &track) == '\\')
-                        && (get_spot(x - 1, y, &track) == '/'
-                            || get_spot(x - 1, y, &track) == '-'
-                            || get_spot(x - 1, y, &track) == '+'
-                            || get_spot(x - 1, y, &track) == '>'
-                            || get_spot(x - 1, y, &track) == '<'
-                            || get_spot(x - 1, y, &track) == '\\'))
+                } else if (updown_symbols.contains(&get_spot(x, y - 1, &track))
+                    && leftright_symbols.contains(&get_spot(x + 1, y, &track)))
+                    || (updown_symbols.contains(&get_spot(x, y + 1, &track))
+                        && leftright_symbols.contains(&get_spot(x - 1, y, &track)))
                 {
                     track[y as usize][x as usize] = '\\';
                 }
@@ -309,48 +252,6 @@ mod tests {
                 ['|', ' ', '|', ' ', '|', ' ', ' ', '|', ' ', '|', ' ', ' ', '|'],
                 ['\\', '-', '+', '-', '/', ' ', ' ', '\\', '-', '+', '-', '-', '/'],
                 [' ', ' ', '\\', '-', '-', '-', '-', '-', '-', '/', ' ', ' ', ' ']
-            ]
-        );
-
-        assert_eq!(
-            actual.1,
-            [
-                CartData {
-                    x: 2,
-                    y: 0,
-                    dir: '>',
-                    turn: 0
-                },
-                CartData {
-                    x: 4,
-                    y: 0,
-                    dir: 'v',
-                    turn: 0
-                },
-                CartData {
-                    x: 4,
-                    y: 1,
-                    dir: 'v',
-                    turn: 0
-                },
-                CartData {
-                    x: 3,
-                    y: 2,
-                    dir: '>',
-                    turn: 0
-                },
-                CartData {
-                    x: 5,
-                    y: 2,
-                    dir: '<',
-                    turn: 0
-                },
-                CartData {
-                    x: 4,
-                    y: 4,
-                    dir: '^',
-                    turn: 0
-                }
             ]
         );
     }
