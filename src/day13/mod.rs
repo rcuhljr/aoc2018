@@ -144,10 +144,6 @@ fn get_spot(x: i32, y: i32, track: &Vec<Vec<char>>) -> char {
     }
 }
 
-fn is_intersection(x: i32, y: i32, track: &Vec<Vec<char>>) -> bool {
-    get_spot(x, y, &track) == '+'
-}
-
 fn parse_input(filename: String) -> (Vec<Vec<char>>, Vec<CartData>) {
     let raw_data = utility::load_strings(filename);
     let mut track: Vec<Vec<char>> = Vec::new();
@@ -165,9 +161,7 @@ fn parse_input(filename: String) -> (Vec<Vec<char>>, Vec<CartData>) {
             let space = track[y as usize][x as usize];
             if space == '>' || space == '<' || space == 'v' || space == '^' {
                 carts.push(CartData::new(x as i32, y as i32, space.clone(), 0));
-                if is_intersection(x, y, &track) {
-                    track[y as usize][x as usize] = '+';
-                } else if leftright_symbols.contains(&get_spot(x - 1, y, &track))
+                if leftright_symbols.contains(&get_spot(x - 1, y, &track))
                     && leftright_symbols.contains(&get_spot(x + 1, y, &track))
                 {
                     track[y as usize][x as usize] = '-';
