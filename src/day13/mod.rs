@@ -73,6 +73,7 @@ fn run_simulation(filename: String, removal: bool) -> (i32, i32) {
             if cart_locs.contains_key(&(newx, newy)) {
                 if removal {
                     dead_carts.push((newx, newy));
+                    cart_locs.remove(&(newx, newy));
                     continue;
                 } else {
                     return (newx, newy);
