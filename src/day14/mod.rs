@@ -21,14 +21,14 @@ fn find_part_2(raw_input: String, start: usize) -> usize {
 
     loop {
         let new_score: usize = elves_loc.iter().map(|x| recipes[*x]).sum();
-        let mut new_recipes = parse_input(new_score.to_string());
+        let new_recipes = parse_input(new_score.to_string());
         let skip = !new_recipes.contains(&last_digit);
-        recipes.append(&mut new_recipes);
-
+        recipes.extend(new_recipes.iter());
         elves_loc = elves_loc
             .iter()
             .map(|x| (x + recipes[*x] + 1) % recipes.len())
             .collect();
+
         if skip || recipes.len() < target_arr.len() + 1 {
             continue;
         }
