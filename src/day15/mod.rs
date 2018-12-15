@@ -142,7 +142,7 @@ fn move_bfs_reading_order(
     targets: &Vec<Unit>,
     field: &Vec<Vec<bool>>,
     unit_map: &mut HashMap<Point, Unit>,
-) -> bool {
+) -> Option<Point> {
     let mut visited: HashSet<Point> = HashSet::new();
     let mut todo: VecDeque<(Point, usize)> = VecDeque::new();
     let mut paths: HashMap<Point, Point> = HashMap::new();
@@ -180,7 +180,7 @@ fn move_bfs_reading_order(
         visited.insert(current.clone());
     }
     if valids.len() == 0 {
-        return false;
+        return None;
     }
 
     valids.sort_unstable();
@@ -201,7 +201,7 @@ fn move_bfs_reading_order(
     moving_unit.update_loc(&best_step);
     unit_map.insert(moving_unit.loc, moving_unit);
     unit.update_loc(&best_step);
-    true
+    Some(best_step)
 }
 
 fn find_end_score(filename: String, ap: i32) -> (i32, bool) {
@@ -243,8 +243,9 @@ fn find_end_score(filename: String, ap: i32) -> (i32, bool) {
                 continue;
             }
             if !targets.iter().any(|target| unit.adjacent_to(target)) {
-                if !move_bfs_reading_order(&mut unit, &targets, &field, &mut unit_map) {
-                    continue;
+                match move_bfs_reading_order(&mut unit, &targets, &field, &mut unit_map) {
+                    Some(new_loc) => unit = *unit_map.get_mut(&new_loc).unwrap(),
+                    None => continue,
                 }
             }
 
