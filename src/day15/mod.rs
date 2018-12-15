@@ -14,15 +14,14 @@ pub fn solve_b() -> String {
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Ord)]
 struct Unit {
-    x: i32,
-    y: i32,
+    loc: Point,
     race: char,
     hp: i32,
     ap: i32,
     turn: bool,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Ord, Hash)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 struct Point {
     x: i32,
     y: i32,
@@ -46,11 +45,19 @@ impl PartialOrd for Point {
     }
 }
 
+impl Ord for Point {
+    fn cmp(&self, other: &Point) -> Ordering {
+        match self.y.cmp(&other.y) {
+            Ordering::Equal => self.x.cmp(&other.x),
+            other => other,
+        }
+    }
+}
+
 impl Unit {
-    fn new(x: i32, y: i32, race: char, hp: i32, ap: i32, turn: bool) -> Unit {
+    fn new(loc: Point, race: char, hp: i32, ap: i32, turn: bool) -> Unit {
         Unit {
-            x,
-            y,
+            loc,
             race,
             hp,
             ap,
@@ -59,16 +66,16 @@ impl Unit {
     }
 
     fn adjacent_to(&self, other: &Unit) -> bool {
-        (self.x - other.x).abs() + (self.y - other.y).abs() == 1
+        (self.loc.x - other.loc.x).abs() + (self.loc.y - other.loc.y).abs() == 1
     }
 
     fn adjacent_space(&self, point: &Point) -> bool {
-        (self.x - point.x).abs() + (self.y - point.y).abs() == 1
+        (self.loc.x - point.x).abs() + (self.loc.y - point.y).abs() == 1
     }
 
     fn update_loc(&mut self, point: &Point) {
-        self.x = point.x;
-        self.y = point.y;
+        self.loc.x = point.x;
+        self.loc.y = point.y;
     }
     fn take_damage(&mut self, dmg: i32) {
         self.hp -= dmg;
@@ -87,10 +94,7 @@ impl Unit {
 
 impl PartialOrd for Unit {
     fn partial_cmp(&self, other: &Unit) -> Option<Ordering> {
-        match self.y.cmp(&other.y) {
-            Ordering::Equal => Some(self.x.cmp(&other.x)),
-            other => Some(other),
-        }
+        Some(self.loc.cmp(&other.loc))
     }
 }
 
@@ -146,7 +150,7 @@ fn move_bfs_reading_order(
     let mut best_step: Point;
     let mut max_depth = 1000;
 
-    todo.push_back((Point::new(unit.x, unit.y), 0));
+    todo.push_back((unit.loc, 0));
 
     while todo.len() > 0 {
         let (current, depth) = todo.pop_front().unwrap();
@@ -192,10 +196,10 @@ fn move_bfs_reading_order(
         best_step = valids[0].clone();
     }
 
-    let old_loc = Point::new(unit.x, unit.y);
+    let old_loc = unit.loc.clone();
     let mut moving_unit = unit_map.remove(&old_loc).unwrap();
     moving_unit.update_loc(&best_step);
-    unit_map.insert(Point::new(moving_unit.x, moving_unit.y), moving_unit);
+    unit_map.insert(moving_unit.loc, moving_unit);
     unit.update_loc(&best_step);
     true
 }
@@ -207,7 +211,7 @@ fn find_end_score(filename: String, ap: i32) -> (i32, bool) {
     let mut winning_race: char;
     let mut unit_map: HashMap<Point, Unit> = HashMap::new();
     for unit in units.iter() {
-        unit_map.insert(Point::new(unit.x.clone(), unit.y.clone()), unit.clone());
+        unit_map.insert(unit.loc.clone(), unit.clone());
     }
 
     loop {
@@ -226,11 +230,7 @@ fn find_end_score(filename: String, ap: i32) -> (i32, bool) {
             }
             turn_order.sort_unstable();
             let mut unit = turn_order[0];
-
-            unit_map
-                .get_mut(&Point::new(unit.x, unit.y))
-                .unwrap()
-                .take_turn();
+            unit_map.get_mut(&unit.loc).unwrap().take_turn();
 
             let targets: Vec<Unit> = unit_map
                 .values()
@@ -257,18 +257,15 @@ fn find_end_score(filename: String, ap: i32) -> (i32, bool) {
                 continue;
             }
             valid_targets.sort_unstable();
-            let best_target = valid_targets.iter().cloned().min_by_key(|x| x.hp).unwrap();
-            unit_map
-                .get_mut(&Point::new(best_target.x, best_target.y))
+            let best_target = valid_targets
+                .iter()
+                .cloned()
+                .min_by_key(|x| x.hp)
                 .unwrap()
-                .take_damage(unit.ap);
-            if unit_map
-                .get(&Point::new(best_target.x, best_target.y))
-                .unwrap()
-                .race
-                == 'D'
-            {
-                unit_map.remove(&Point::new(best_target.x, best_target.y));
+                .loc;
+            unit_map.get_mut(&best_target).unwrap().take_damage(unit.ap);
+            if unit_map.get(&best_target).unwrap().race == 'D' {
+                unit_map.remove(&best_target);
             }
         }
 
@@ -307,11 +304,23 @@ fn parse_input(filename: String, ap: i32) -> (Vec<Vec<bool>>, Vec<Unit>) {
                 '.' => field[y].push(true),
                 'E' => {
                     field[y].push(true);
-                    units.push(Unit::new(x as i32, y as i32, 'E', 200, ap, false));
+                    units.push(Unit::new(
+                        Point::new(x as i32, y as i32),
+                        'E',
+                        200,
+                        ap,
+                        false,
+                    ));
                 }
                 'G' => {
                     field[y].push(true);
-                    units.push(Unit::new(x as i32, y as i32, 'G', 200, 3, false));
+                    units.push(Unit::new(
+                        Point::new(x as i32, y as i32),
+                        'G',
+                        200,
+                        3,
+                        false,
+                    ));
                 }
                 _ => panic!("New character?"),
             }
