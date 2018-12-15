@@ -19,6 +19,7 @@ struct Unit {
     race: char,
     hp: i32,
     ap: i32,
+    turn: bool,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, Hash)]
@@ -32,10 +33,8 @@ impl Point {
         Point { x, y }
     }
 
-    fn is_blocked(&self, field: &Vec<Vec<bool>>, units: &Vec<Unit>) -> bool {
-        !field[self.y as usize][self.x as usize] || units
-            .iter()
-            .any(|u| self.x == u.x && self.y == u.y && u.race != 'D')
+    fn is_blocked(&self, field: &Vec<Vec<bool>>, units_map: &HashMap<Point, Unit>) -> bool {
+        !field[self.y as usize][self.x as usize] || units_map.contains_key(&self)
     }
 }
 impl PartialOrd for Point {
@@ -48,8 +47,15 @@ impl PartialOrd for Point {
 }
 
 impl Unit {
-    fn new(x: i32, y: i32, race: char, hp: i32, ap: i32) -> Unit {
-        Unit { x, y, race, hp, ap }
+    fn new(x: i32, y: i32, race: char, hp: i32, ap: i32, turn: bool) -> Unit {
+        Unit {
+            x,
+            y,
+            race,
+            hp,
+            ap,
+            turn,
+        }
     }
 
     fn adjacent_to(&self, other: &Unit) -> bool {
@@ -70,6 +76,13 @@ impl Unit {
             self.race = 'D';
         }
     }
+    fn take_turn(&mut self) {
+        self.turn = true;
+    }
+
+    fn reset_turn(&mut self) {
+        self.turn = false;
+    }
 }
 
 impl PartialOrd for Unit {
@@ -81,18 +94,16 @@ impl PartialOrd for Unit {
     }
 }
 
-fn pretty_print(field: &Vec<Vec<bool>>, units: &Vec<Unit>) {
+fn pretty_print(field: &Vec<Vec<bool>>, units_map: &HashMap<Point, Unit>) {
     field.iter().enumerate().for_each(|pair| {
         let (y, row) = pair;
         let mut side_info = String::from("    ");
         print!(
-            "{:?}",
+            "{}",
             row.iter()
                 .enumerate()
                 .map(|ipair| {
-                    let unit = units
-                        .iter()
-                        .find(|x| x.x == ipair.0 as i32 && x.y == y as i32);
+                    let unit = units_map.get(&Point::new(ipair.0 as i32, y as i32));
                     match unit {
                         Some(u) => {
                             side_info.push(u.race.clone());
@@ -122,141 +133,162 @@ fn find_flawless_victory(filename: String) -> i32 {
     -1
 }
 
+fn move_bfs_reading_order(
+    unit: &mut Unit,
+    targets: &Vec<Unit>,
+    field: &Vec<Vec<bool>>,
+    unit_map: &mut HashMap<Point, Unit>,
+) -> bool {
+    let mut visited: HashSet<Point> = HashSet::new();
+    let mut todo: VecDeque<(Point, usize)> = VecDeque::new();
+    let mut paths: HashMap<Point, Point> = HashMap::new();
+    let mut valids: Vec<Point> = Vec::new();
+    let mut best_step: Point;
+    let mut max_depth = 1000;
+
+    todo.push_back((Point::new(unit.x, unit.y), 0));
+
+    while todo.len() > 0 {
+        let (current, depth) = todo.pop_front().unwrap();
+        if max_depth < depth {
+            continue;
+        }
+        if targets.iter().any(|target| target.adjacent_space(&current)) {
+            max_depth = depth;
+            valids.push(current.clone());
+        }
+        let children = vec![
+            Point::new(current.x, current.y - 1),
+            Point::new(current.x - 1, current.y),
+            Point::new(current.x + 1, current.y),
+            Point::new(current.x, current.y + 1),
+        ];
+        for child in children {
+            if visited.contains(&child)
+                || paths.contains_key(&child)
+                || child.is_blocked(&field, &unit_map)
+            {
+                continue;
+            }
+            paths.insert(child.clone(), current.clone());
+            todo.push_back((child, depth + 1));
+        }
+        visited.insert(current.clone());
+    }
+    if valids.len() == 0 {
+        return false;
+    }
+
+    valids.sort_unstable();
+    best_step = (*paths.get(&valids[0]).unwrap()).clone();
+    let mut previous_step = best_step.clone();
+    while paths.contains_key(&best_step) {
+        previous_step = best_step.clone();
+        best_step = (*paths.get(&best_step).unwrap()).clone();
+    }
+    if best_step != previous_step {
+        best_step = previous_step;
+    } else {
+        best_step = valids[0].clone();
+    }
+
+    let old_loc = Point::new(unit.x, unit.y);
+    let mut moving_unit = unit_map.remove(&old_loc).unwrap();
+    moving_unit.update_loc(&best_step);
+    unit_map.insert(Point::new(moving_unit.x, moving_unit.y), moving_unit);
+    unit.update_loc(&best_step);
+    true
+}
+
 fn find_end_score(filename: String, ap: i32) -> (i32, bool) {
-    let (field, mut units) = parse_input(filename, ap);
+    let (field, units) = parse_input(filename, ap);
     let mut round = 0;
     let elves_count = units.iter().filter(|x| x.race == 'E').count();
+    let mut winning_race: char;
+    let mut unit_map: HashMap<Point, Unit> = HashMap::new();
+    for unit in units.iter() {
+        unit_map.insert(Point::new(unit.x.clone(), unit.y.clone()), unit.clone());
+    }
 
     loop {
-        let turn_order = units.clone();
+        // println!("round: {}", round);
+        // pretty_print(&field, &unit_map);
+
+        unit_map.iter_mut().for_each(|pair| pair.1.reset_turn());
         let mut full_turn = true;
 
-        for unit in turn_order.iter() {
-            match units
-                .iter()
-                .find(|x| unit.x == x.x && unit.y == x.y && x.race == 'D')
-            {
-                Some(_) => continue,
-                _ => (),
+        while unit_map.values().any(|x| !x.turn) {
+            let mut turn_order: Vec<Unit> = Vec::new();
+            for val in unit_map.values() {
+                if !val.turn {
+                    turn_order.push(val.clone());
+                }
             }
+            turn_order.sort_unstable();
+            let mut unit = turn_order[0];
 
-            let targets: Vec<Unit> = units
-                .iter()
+            unit_map
+                .get_mut(&Point::new(unit.x, unit.y))
+                .unwrap()
+                .take_turn();
+
+            let targets: Vec<Unit> = unit_map
+                .values()
                 .filter(|x| unit.race != x.race && x.race != 'D')
                 .cloned()
                 .collect();
-            let mut post_move_unit = unit.clone();
 
             if targets.len() == 0 {
                 full_turn = false;
                 continue;
             }
-
             if !targets.iter().any(|target| unit.adjacent_to(target)) {
-                let mut visited: HashSet<Point> = HashSet::new();
-                let mut todo: VecDeque<(Point, usize)> = VecDeque::new();
-                let mut paths: HashMap<Point, Point> = HashMap::new();
-                let mut valids: Vec<Point> = Vec::new();
-                let mut best_step: Point;
-                let mut max_depth = 1000;
-
-                todo.push_back((Point::new(unit.x, unit.y), 0));
-
-                while todo.len() > 0 {
-                    let (current, depth) = todo.pop_front().unwrap();
-                    if max_depth < depth {
-                        continue;
-                    }
-                    if targets.iter().any(|target| target.adjacent_space(&current)) {
-                        max_depth = depth;
-                        valids.push(current.clone());
-                    }
-                    let children = vec![
-                        Point::new(current.x, current.y - 1),
-                        Point::new(current.x - 1, current.y),
-                        Point::new(current.x + 1, current.y),
-                        Point::new(current.x, current.y + 1),
-                    ];
-                    for child in children {
-                        if visited.contains(&child)
-                            || paths.contains_key(&child)
-                            || child.is_blocked(&field, &units)
-                        {
-                            continue;
-                        }
-                        paths.insert(child.clone(), current.clone());
-                        todo.push_back((child, depth + 1));
-                    }
-                    visited.insert(current.clone());
-                }
-                if valids.len() == 0 {
+                if !move_bfs_reading_order(&mut unit, &targets, &field, &mut unit_map) {
                     continue;
-                }
-
-                valids.sort_unstable();
-                best_step = (*paths.get(&valids[0]).unwrap()).clone();
-                let mut previous_step = best_step.clone();
-                while paths.contains_key(&best_step) {
-                    previous_step = best_step.clone();
-                    best_step = (*paths.get(&best_step).unwrap()).clone();
-                }
-                if best_step != previous_step {
-                    best_step = previous_step;
-                } else {
-                    best_step = valids[0].clone();
-                }
-
-                for loc_unit in units.iter_mut() {
-                    if !(*loc_unit == *unit) {
-                        continue;
-                    }
-                    (*loc_unit).update_loc(&best_step);
-                    post_move_unit = *loc_unit;
                 }
             }
 
-            let mut best_target;
+            let mut valid_targets: Vec<Unit> = targets
+                .iter()
+                .filter(|target| unit.adjacent_to(target))
+                .cloned()
+                .collect();
+            if valid_targets.len() == 0 {
+                continue;
+            }
+            valid_targets.sort_unstable();
+            let best_target = valid_targets.iter().cloned().min_by_key(|x| x.hp).unwrap();
+            unit_map
+                .get_mut(&Point::new(best_target.x, best_target.y))
+                .unwrap()
+                .take_damage(unit.ap);
+            if unit_map
+                .get(&Point::new(best_target.x, best_target.y))
+                .unwrap()
+                .race
+                == 'D'
             {
-                let mut valid_targets: Vec<Unit> = targets
-                    .iter()
-                    .filter(|target| post_move_unit.adjacent_to(target))
-                    .cloned()
-                    .collect();
-                if valid_targets.len() == 0 {
-                    continue;
-                }
-                valid_targets.sort_unstable();
-                best_target = valid_targets.iter().cloned().min_by_key(|x| x.hp);
-            }
-
-            match best_target {
-                Some(target) => units
-                    .iter_mut()
-                    .find(|x| **x == target)
-                    .unwrap()
-                    .take_damage(unit.ap),
-                None => (),
+                unit_map.remove(&Point::new(best_target.x, best_target.y));
             }
         }
 
-        units = units.iter().filter(|x| x.race != 'D').cloned().collect();
-        units.sort_unstable();
-        let race = units[0].race.clone();
+        let mut unit_iter = unit_map.values();
+        winning_race = unit_iter.next().unwrap().race.clone();
         if full_turn {
             round += 1;
         }
-        if !units.iter().any(|unit| unit.race != race) {
+        if !unit_iter.any(|unit| unit.race != winning_race) {
             break;
         }
     }
 
-    units = units.iter().filter(|x| x.race != 'D').cloned().collect();
+    // println!("round: {}", round);
+    // pretty_print(&field, &unit_map);
 
-    let tot_hp = units.iter().fold(0, |acc, x| acc + x.hp);
-
+    let tot_hp = unit_map.values().fold(0, |acc, x| acc + x.hp);
     (
         round * tot_hp,
-        units[0].race == 'E' && elves_count == units.len(),
+        winning_race == 'E' && elves_count == unit_map.len(),
     )
 }
 
@@ -275,11 +307,11 @@ fn parse_input(filename: String, ap: i32) -> (Vec<Vec<bool>>, Vec<Unit>) {
                 '.' => field[y].push(true),
                 'E' => {
                     field[y].push(true);
-                    units.push(Unit::new(x as i32, y as i32, 'E', 200, ap));
+                    units.push(Unit::new(x as i32, y as i32, 'E', 200, ap, false));
                 }
                 'G' => {
                     field[y].push(true);
-                    units.push(Unit::new(x as i32, y as i32, 'G', 200, 3));
+                    units.push(Unit::new(x as i32, y as i32, 'G', 200, 3, false));
                 }
                 _ => panic!("New character?"),
             }
