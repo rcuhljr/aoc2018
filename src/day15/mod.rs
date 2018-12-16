@@ -98,6 +98,7 @@ impl PartialOrd for Unit {
     }
 }
 
+#[allow(dead_code)]
 fn pretty_print(field: &Vec<Vec<bool>>, units_map: &HashMap<Point, Unit>) {
     field.iter().enumerate().for_each(|pair| {
         let (y, row) = pair;
