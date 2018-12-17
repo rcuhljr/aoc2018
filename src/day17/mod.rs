@@ -31,7 +31,7 @@ impl Point {
     fn right(self) -> Point {
         Point::new(self.x + 1, self.y)
     }
-    fn higher(self) -> Point {
+    fn shallower(self) -> Point {
         Point::new(self.x, self.y - 1)
     }
 }
@@ -134,7 +134,7 @@ fn count_source(
                 water.insert(Point::new(x, current.y));
                 blockers.insert(Point::new(x, current.y));
             }
-            current = current.higher();
+            current = current.shallower();
         }
     }
     new_sources
