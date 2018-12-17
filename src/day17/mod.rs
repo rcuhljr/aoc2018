@@ -36,16 +36,9 @@ impl Point {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-struct Sample {
-    before: [usize; 4],
-    op_code: [usize; 4],
-    after: [usize; 4],
-}
-
 fn count_water(filename: String) -> (usize, usize) {
     let (mut blockers, (min_y, max_y)) = parse_input(filename);
-    let clay = blockers.len();
+    let clay_count = blockers.len();
     let mut water: HashSet<Point> = HashSet::new();
     let mut sources: Vec<Point> = vec![Point::new(500, 0)];
 
@@ -57,7 +50,7 @@ fn count_water(filename: String) -> (usize, usize) {
         sources.append(&mut new_sources);
     }
 
-    (water.len(), blockers.len() - clay)
+    (water.len(), blockers.len() - clay_count)
 }
 
 fn count_source(
@@ -149,8 +142,8 @@ fn count_source(
 
 fn parse_input(filename: String) -> (HashSet<Point>, (usize, usize)) {
     lazy_static! {
-        static ref VERTICAL_REGEX: Regex = Regex::new(r"x=(\d+), y=(\d+)\.\.(\d+)").unwrap();
-        static ref HORIZONTAL_REGEX: Regex = Regex::new(r"y=(\d+), x=(\d+)\.\.(\d+)").unwrap();
+        static ref VERTICAL_REGEX: Regex = Regex::new(r"^x=(\d+), y=(\d+)\.\.(\d+)").unwrap();
+        static ref HORIZONTAL_REGEX: Regex = Regex::new(r"^y=(\d+), x=(\d+)\.\.(\d+)").unwrap();
     }
     let raw_data = utility::load_strings(filename);
     let mut field: HashSet<Point> = HashSet::new();
