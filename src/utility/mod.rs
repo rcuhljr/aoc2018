@@ -21,6 +21,18 @@ pub fn load_strings(filename: String) -> Vec<String> {
     return v.map(|val| val.to_string()).collect();
 }
 
+// #[macro_export]
+// macro_rules! debugln {
+//     ($fmt:expr, $log:expr) => (if $log {println!($fmt)});
+//     ($fmt:expr, $log:expr, $($arg:tt)*) => (if $log {println!($fmt,$($arg)*)});
+// }
+
+// #[macro_export]
+// macro_rules! debug {
+//     ($fmt:expr) => (if true {println!($fmt)});
+//     ($fmt:expr, $($arg:tt)*) => (if true {println!($fmt,$($arg)*)});
+// }
+
 #[cfg(test)]
 mod tests {
     use super::*;
