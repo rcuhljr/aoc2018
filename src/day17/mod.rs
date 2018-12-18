@@ -1,4 +1,5 @@
 use super::utility;
+use image::{GenericImage, ImageBuffer};
 use regex::Regex;
 use std::cmp;
 use std::collections::HashSet;
@@ -36,6 +37,31 @@ impl Point {
     }
 }
 
+fn save_result(water: &HashSet<Point>, blockers: &HashSet<Point>) {
+    let (mut min_x, mut min_y, mut max_x, mut max_y) = (1500, 1500, 0, 0);
+    for item in water.union(blockers) {
+        min_x = cmp::min(min_x, item.x);
+        min_y = cmp::min(min_y, item.y);
+        max_x = cmp::max(max_x, item.x);
+        max_y = cmp::max(max_y, item.y);
+    }
+    let x_offset = max_x - min_x;
+    let mut img: image::ImageBuffer<image::Rgba<u8>, _> =
+        ImageBuffer::new((x_offset + 2) as u32, (max_y + 2) as u32);
+
+    for x in min_x..max_x + 2 {
+        for y in 0..max_y + 2 {
+            if water.contains(&Point::new(x, y)) {
+                img.get_pixel_mut((x - min_x) as u32, y as u32).data = [0, 0, 255, 255];
+            } else if blockers.contains(&Point::new(x, y)) {
+                img.get_pixel_mut((x - min_x) as u32, y as u32).data = [0, 0, 0, 255];
+            }
+        }
+    }
+
+    img.save("c:\\temp\\water.png").unwrap();
+}
+
 fn count_water(filename: String) -> (usize, usize) {
     let (mut blockers, (min_y, max_y)) = parse_input(filename);
     let clay_count = blockers.len();
@@ -49,6 +75,8 @@ fn count_water(filename: String) -> (usize, usize) {
 
         sources.append(&mut new_sources);
     }
+
+    save_result(&water, &blockers);
 
     (water.len(), blockers.len() - clay_count)
 }

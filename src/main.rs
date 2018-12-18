@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate lazy_static;
+extern crate image;
 extern crate petgraph;
 extern crate regex;
 use std::time::Instant;
