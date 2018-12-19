@@ -13,6 +13,7 @@ mod day15;
 mod day16;
 mod day17;
 mod day18;
+mod day19;
 mod day2;
 mod day3;
 mod day4;
@@ -67,4 +68,6 @@ fn main() {
     record_times("Day17b", &day17::solve_b);
     record_times("Day18a", &day18::solve_a);
     record_times("Day18b", &day18::solve_b);
+    record_times("Day19a", &day19::solve_a);
+    record_times("Day19b", &day19::solve_b);
 }

@@ -1,7 +1,4 @@
 use super::utility;
-use regex::Regex;
-use std::cmp;
-use std::collections::HashSet;
 
 pub fn solve_a() -> String {
     score_after(&parse_input("input18.txt".to_string()), 10)
@@ -177,9 +174,9 @@ mod tests {
 
     #[test]
     fn should_solve_two_five_sample() {
-        let mut starter = parse_input("./src/day18/test.txt".to_string());
-        let mut actual = score_after(&starter, 5);
-        let mut actual = score_after(&actual.1, 5);
+        let starter = parse_input("./src/day18/test.txt".to_string());
+        let actual = score_after(&starter, 5);
+        let actual = score_after(&actual.1, 5);
 
         assert_eq!(actual.0, 1147);
     }
