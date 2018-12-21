@@ -7,7 +7,7 @@ pub fn solve_a() -> String {
 }
 
 pub fn solve_b() -> String {
-    run_for_part_b(&"input21.txt".to_string(), [1, 0, 0, 0, 0, 0]).to_string()
+    run_for_part_b(&"input21.txt".to_string()).to_string()
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -134,7 +134,7 @@ fn run_for_part_a(filename: &String, initial_reg: [usize; 6]) -> usize {
 
 //Originally this was just the loop from run from part A with a hashset, but it takes about 17 seconds to run because of all of the abstraction.
 //So I just put the minimized version of what my input is doing.
-fn run_for_part_b(filename: &String, initial_reg: [usize; 6]) -> usize {
+fn run_for_part_b(filename: &String) -> usize {
     let (data, _) = parse_input(filename.to_string());
     let base_val = data[7].vals[0];
     let mut seen = HashSet::new();
@@ -164,7 +164,7 @@ mod tests {
 
     #[test]
     fn should_read_initial_input21() {
-        let actual = run_for_part_b(&"input21.txt".to_string(), [1, 0, 0, 0, 0, 0]);
+        let actual = run_for_part_b(&"input21.txt".to_string());
 
         assert_eq!(actual, 12502875);
     }
