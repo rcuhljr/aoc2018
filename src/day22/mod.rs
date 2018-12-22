@@ -81,12 +81,6 @@ impl Region {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
-struct Inst {
-    op_code: String,
-    vals: [usize; 3],
-}
-
 fn build_map(depth: usize, target: Point) -> HashMap<Point, Region> {
     let mut map = HashMap::new();
 
