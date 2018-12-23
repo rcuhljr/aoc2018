@@ -75,9 +75,7 @@ impl HRectangle {
     }
 
     fn is_point(&self) -> bool {
-        let min = self.min;
-        let max = self.max;
-        min.x == max.x && min.y == max.y && min.z == max.z
+        self.min == self.max
     }
 }
 
