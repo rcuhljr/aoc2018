@@ -8,31 +8,7 @@ pub fn solve_a() -> String {
 
 pub fn solve_b() -> String {
     let bots = parse_input("input23.txt".to_string());
-    let (mut min_x, mut min_y, mut min_z, mut max_x, mut max_y, mut max_z) =
-        (10000000, 10000000, 10000000, 0, 0, 0);
-
-    for bot in bots.iter() {
-        if bot.loc.x < min_x {
-            min_x = bot.loc.x
-        }
-        if bot.loc.x > max_x {
-            max_x = bot.loc.x
-        }
-        if bot.loc.y < min_y {
-            min_y = bot.loc.y
-        }
-        if bot.loc.y > max_y {
-            max_y = bot.loc.y
-        }
-        if bot.loc.z < min_z {
-            min_z = bot.loc.z
-        }
-        if bot.loc.z > max_z {
-            max_z = bot.loc.z
-        }
-    }
-
-    let hrect: HRectangle = HRectangle::new(min_x, min_y, min_z, max_x, max_y, max_z);
+    let hrect: HRectangle = build_bound_box(&bots);
     find_most_in_range_point_dist(&bots, hrect).to_string()
 }
 
@@ -103,6 +79,33 @@ impl HRectangle {
         let max = self.max;
         min.x == max.x && min.y == max.y && min.z == max.z
     }
+}
+
+fn build_bound_box(bots: &Vec<Bot>) -> HRectangle {
+    let (mut min_x, mut min_y, mut min_z, mut max_x, mut max_y, mut max_z) =
+        (10000000, 10000000, 10000000, 0, 0, 0);
+
+    for bot in bots.iter() {
+        if bot.loc.x < min_x {
+            min_x = bot.loc.x
+        }
+        if bot.loc.x > max_x {
+            max_x = bot.loc.x
+        }
+        if bot.loc.y < min_y {
+            min_y = bot.loc.y
+        }
+        if bot.loc.y > max_y {
+            max_y = bot.loc.y
+        }
+        if bot.loc.z < min_z {
+            min_z = bot.loc.z
+        }
+        if bot.loc.z > max_z {
+            max_z = bot.loc.z
+        }
+    }
+    HRectangle::new(min_x, min_y, min_z, max_x, max_y, max_z)
 }
 
 fn parse_input(filename: String) -> Vec<Bot> {
@@ -254,31 +257,7 @@ mod tests {
     #[test]
     fn should_solve_bigger_sample23() {
         let bots = parse_input("./src/day23/test2.txt".to_string());
-        let (mut min_x, mut min_y, mut min_z, mut max_x, mut max_y, mut max_z) =
-            (10000000, 10000000, 10000000, 0, 0, 0);
-
-        for bot in bots.iter() {
-            if bot.loc.x < min_x {
-                min_x = bot.loc.x
-            }
-            if bot.loc.x > max_x {
-                max_x = bot.loc.x
-            }
-            if bot.loc.y < min_y {
-                min_y = bot.loc.y
-            }
-            if bot.loc.y > max_y {
-                max_y = bot.loc.y
-            }
-            if bot.loc.z < min_z {
-                min_z = bot.loc.z
-            }
-            if bot.loc.z > max_z {
-                max_z = bot.loc.z
-            }
-        }
-
-        let hrect: HRectangle = HRectangle::new(min_x, min_y, min_z, max_x, max_y, max_z);
+        let hrect: HRectangle = build_bound_box(&bots);
 
         let actual = find_most_in_range_point_dist(&bots, hrect);
         assert_eq!(actual, 1);
@@ -298,32 +277,7 @@ mod tests {
     #[test]
     fn should_find_densest_area() {
         let bots = parse_input("./src/day23/test.txt".to_string());
-
-        let (mut min_x, mut min_y, mut min_z, mut max_x, mut max_y, mut max_z) =
-            (10000000, 10000000, 10000000, 0, 0, 0);
-
-        for bot in bots.iter() {
-            if bot.loc.x < min_x {
-                min_x = bot.loc.x
-            }
-            if bot.loc.x > max_x {
-                max_x = bot.loc.x
-            }
-            if bot.loc.y < min_y {
-                min_y = bot.loc.y
-            }
-            if bot.loc.y > max_y {
-                max_y = bot.loc.y
-            }
-            if bot.loc.z < min_z {
-                min_z = bot.loc.z
-            }
-            if bot.loc.z > max_z {
-                max_z = bot.loc.z
-            }
-        }
-
-        let hrect: HRectangle = HRectangle::new(min_x, min_y, min_z, max_x, max_y, max_z);
+        let hrect: HRectangle = build_bound_box(&bots);
 
         assert_eq!(
             hrect,
